@@ -1,0 +1,906 @@
+:host {
+  all: initial;
+
+  --bug-surface: #ffffff;
+  --bug-surface-subtle: #f7f7f8;
+
+  --bug-text: #171717;
+  --bug-text-secondary: #66666b;
+  --bug-text-muted: #96969c;
+
+  --bug-border: rgb(0 0 0 / 8%);
+  --bug-border-strong: rgb(0 0 0 / 12%);
+
+  --bug-shadow: 0 12px 32px rgb(0 0 0 / 12%), 0 28px 80px rgb(0 0 0 / 14%);
+
+  --bug-radius: 18px;
+
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  color: var(--bug-text);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+button,
+textarea,
+input {
+  font: inherit;
+}
+
+button {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+button,
+label {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ============================================================
+   LAUNCHER
+   ============================================================ */
+
+.bug-button {
+  position: fixed;
+
+  right: 20px;
+  bottom: 20px;
+
+  z-index: 2147483647;
+
+  display: inline-flex;
+  align-items: center;
+
+  gap: 8px;
+
+  height: 40px;
+
+  padding: 0 14px;
+
+  border: 1px solid rgb(0 0 0 / 10%);
+  border-radius: 999px;
+
+  background: #171717;
+  color: #ffffff;
+
+  box-shadow:
+    0 2px 8px rgb(0 0 0 / 12%),
+    0 8px 24px rgb(0 0 0 / 10%);
+
+  cursor: pointer;
+
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1;
+
+  letter-spacing: -0.01em;
+
+  white-space: nowrap;
+
+  transition:
+    background-color 140ms ease-out,
+    box-shadow 140ms ease-out,
+    transform 140ms ease-out;
+}
+
+.bug-button:hover {
+  background: #272727;
+
+  box-shadow:
+    0 3px 10px rgb(0 0 0 / 14%),
+    0 10px 28px rgb(0 0 0 / 12%);
+}
+
+.bug-button:active {
+  transform: translateY(1px) scale(0.985);
+}
+
+.bug-button.is-open {
+  background: #252525;
+}
+
+.bug-button-icon {
+  flex: 0 0 auto;
+}
+
+/* ============================================================
+   OVERLAY
+   ============================================================ */
+
+.bug-overlay {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 2147483646;
+
+  display: flex;
+
+  align-items: flex-end;
+  justify-content: flex-end;
+
+  padding: 20px;
+
+  pointer-events: none;
+}
+
+/* ============================================================
+   DIALOG
+   ============================================================ */
+
+.bug-dialog {
+  display: flex;
+  flex-direction: column;
+
+  width: min(440px, calc(100vw - 40px));
+
+  /*
+   * Deliberately fixed.
+   *
+   * 560px is compact enough to feel like a widget rather
+   * than a full application modal, while still forcing
+   * the form body to scroll on a normal viewport.
+   */
+  height: 560px;
+
+  max-height: calc(100dvh - 40px);
+
+  min-height: 0;
+
+  overflow: hidden;
+
+  pointer-events: auto;
+
+  border: 1px solid var(--bug-border);
+  border-radius: var(--bug-radius);
+
+  background: var(--bug-surface);
+
+  box-shadow: var(--bug-shadow);
+
+  animation: bug-dialog-enter 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ============================================================
+   HEADER — NEVER SCROLLS
+   ============================================================ */
+
+.bug-dialog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  flex: 0 0 auto;
+
+  gap: 16px;
+
+  padding: 19px 20px 18px;
+
+  border-bottom: 1px solid var(--bug-border);
+
+  background: var(--bug-surface);
+}
+
+.bug-dialog-heading {
+  min-width: 0;
+}
+
+.bug-dialog-kicker {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: var(--bug-text-muted);
+
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1;
+
+  text-transform: uppercase;
+}
+
+.bug-dialog-heading h2 {
+  margin: 0;
+
+  color: var(--bug-text);
+
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: -0.028em;
+  line-height: 1.2;
+}
+
+.bug-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 auto;
+
+  width: 32px;
+  height: 32px;
+
+  padding: 0;
+
+  border: 1px solid transparent;
+  border-radius: 9px;
+
+  background: transparent;
+  color: var(--bug-text-secondary);
+
+  cursor: pointer;
+
+  transition:
+    background-color 120ms ease-out,
+    border-color 120ms ease-out,
+    color 120ms ease-out,
+    transform 120ms ease-out;
+}
+
+.bug-close:hover {
+  border-color: var(--bug-border);
+  background: var(--bug-surface-subtle);
+  color: var(--bug-text);
+}
+
+.bug-close:active {
+  transform: scale(0.96);
+}
+
+.bug-close:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+/* ============================================================
+   SCROLL REGION
+   ============================================================ */
+
+.bug-dialog-scroll {
+  /*
+   * This combination is the important part.
+   *
+   * The dialog owns the fixed height.
+   * The header consumes its natural height.
+   * This element receives the remainder.
+   */
+  flex: 1 1 0;
+
+  min-height: 0;
+
+  overflow-y: scroll;
+  overflow-x: hidden;
+
+  /*
+   * Prevent the available width from changing when
+   * the scrollbar appears.
+   */
+  scrollbar-gutter: stable;
+
+  overscroll-behavior: contain;
+
+  /*
+   * Firefox.
+   */
+  scrollbar-width: auto;
+  scrollbar-color: rgb(0 0 0 / 28%) transparent;
+}
+
+/*
+ * Chromium / Edge / Safari.
+ *
+ * We intentionally use a normal-width scrollbar rather than
+ * depending on the OS overlay-scrollbar behavior.
+ */
+.bug-dialog-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+
+.bug-dialog-scroll::-webkit-scrollbar-track {
+  margin: 4px 0;
+
+  background: transparent;
+}
+
+.bug-dialog-scroll::-webkit-scrollbar-thumb {
+  min-height: 46px;
+
+  border: 3px solid transparent;
+  border-radius: 999px;
+
+  background: rgb(0 0 0 / 24%);
+  background-clip: padding-box;
+}
+
+.bug-dialog-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgb(0 0 0 / 36%);
+  background-clip: padding-box;
+}
+
+.bug-dialog-scroll:focus-visible {
+  outline: none;
+}
+
+/* ============================================================
+   FORM
+   ============================================================ */
+
+.bug-form {
+  display: flex;
+  flex-direction: column;
+
+  gap: 22px;
+
+  min-width: 0;
+
+  padding: 20px 20px 0;
+}
+
+.bug-form-bottom-space {
+  flex: 0 0 2px;
+
+  height: 2px;
+}
+
+/* ============================================================
+   PRIMARY FIELD
+   ============================================================ */
+
+.bug-primary-field {
+  margin: 0;
+}
+
+.bug-field-label,
+.bug-type-field legend {
+  display: block;
+
+  margin: 0 0 9px;
+
+  padding: 0;
+
+  color: var(--bug-text);
+
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.3;
+}
+
+.bug-primary-field textarea,
+.bug-disclosure-content textarea {
+  display: block;
+
+  width: 100%;
+
+  min-height: 108px;
+
+  padding: 12px 13px;
+
+  resize: vertical;
+
+  border: 1px solid var(--bug-border-strong);
+  border-radius: 11px;
+
+  outline: none;
+
+  background: var(--bug-surface);
+  color: var(--bug-text);
+
+  font-size: 13px;
+  line-height: 1.5;
+
+  transition:
+    border-color 130ms ease-out,
+    box-shadow 130ms ease-out;
+}
+
+.bug-primary-field textarea::placeholder,
+.bug-disclosure-content textarea::placeholder {
+  color: var(--bug-text-muted);
+}
+
+.bug-primary-field textarea:focus,
+.bug-disclosure-content textarea:focus {
+  border-color: rgb(0 0 0 / 20%);
+
+  box-shadow: 0 0 0 3px rgb(0 0 0 / 5%);
+}
+
+/* ============================================================
+   TYPE
+   ============================================================ */
+
+.bug-type-field {
+  min-width: 0;
+
+  margin: 0;
+
+  padding: 0;
+
+  border: 0;
+}
+
+.bug-type-grid {
+  display: grid;
+
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  gap: 8px;
+}
+
+.bug-type-option {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  min-width: 0;
+  min-height: 42px;
+
+  gap: 8px;
+
+  padding: 0 11px;
+
+  border: 1px solid var(--bug-border);
+  border-radius: 10px;
+
+  background: var(--bug-surface);
+
+  color: var(--bug-text-secondary);
+
+  cursor: pointer;
+
+  font-size: 12px;
+  font-weight: 550;
+
+  transition:
+    border-color 120ms ease-out,
+    background-color 120ms ease-out,
+    color 120ms ease-out,
+    transform 120ms ease-out;
+}
+
+.bug-type-option:hover {
+  border-color: var(--bug-border-strong);
+  background: var(--bug-surface-subtle);
+  color: var(--bug-text);
+}
+
+.bug-type-option:active {
+  transform: scale(0.985);
+}
+
+.bug-type-option.is-selected {
+  border-color: rgb(0 0 0 / 15%);
+  background: #f3f3f4;
+  color: var(--bug-text);
+}
+
+.bug-type-option input {
+  position: absolute;
+
+  width: 1px;
+  height: 1px;
+
+  margin: -1px;
+
+  overflow: hidden;
+
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+}
+
+.bug-type-check {
+  margin-left: auto;
+
+  flex: 0 0 auto;
+}
+
+/* ============================================================
+   DISCLOSURES
+   ============================================================ */
+
+.bug-secondary-options {
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+}
+
+.bug-disclosure {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  width: 100%;
+
+  min-height: 42px;
+
+  gap: 12px;
+
+  padding: 0 11px;
+
+  border: 1px solid var(--bug-border);
+  border-radius: 10px;
+
+  background: var(--bug-surface);
+  color: var(--bug-text-secondary);
+
+  cursor: pointer;
+
+  font-size: 12px;
+  font-weight: 550;
+
+  text-align: left;
+
+  transition:
+    border-color 120ms ease-out,
+    background-color 120ms ease-out,
+    color 120ms ease-out;
+}
+
+.bug-disclosure:hover {
+  border-color: var(--bug-border-strong);
+  background: var(--bug-surface-subtle);
+  color: var(--bug-text);
+}
+
+.bug-disclosure.is-open {
+  border-color: var(--bug-border-strong);
+  background: var(--bug-surface-subtle);
+  color: var(--bug-text);
+}
+
+.bug-disclosure-main {
+  display: flex;
+  align-items: center;
+
+  min-width: 0;
+
+  gap: 9px;
+}
+
+.bug-disclosure-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 auto;
+
+  color: var(--bug-text-muted);
+}
+
+.bug-disclosure-chevron {
+  flex: 0 0 auto;
+
+  color: var(--bug-text-muted);
+
+  transition: transform 160ms ease-out;
+}
+
+.bug-disclosure.is-open .bug-disclosure-chevron {
+  transform: rotate(180deg);
+}
+
+.bug-disclosure-content {
+  padding: 0 2px 2px;
+}
+
+.bug-disclosure-content textarea {
+  min-height: 100px;
+}
+
+.bug-screenshot-placeholder {
+  display: flex;
+  align-items: center;
+
+  min-height: 78px;
+
+  gap: 12px;
+
+  padding: 14px;
+
+  border: 1px dashed var(--bug-border-strong);
+  border-radius: 11px;
+
+  background: var(--bug-surface-subtle);
+  color: var(--bug-text-muted);
+}
+
+.bug-screenshot-placeholder > div {
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+}
+
+.bug-screenshot-placeholder strong {
+  color: var(--bug-text);
+
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.bug-screenshot-placeholder span {
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+/* ============================================================
+   CONTEXT
+   ============================================================ */
+
+.bug-context {
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+
+  padding: 12px;
+
+  border-radius: 11px;
+
+  background: var(--bug-surface-subtle);
+}
+
+.bug-context-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  min-width: 0;
+
+  gap: 16px;
+
+  color: var(--bug-text-muted);
+
+  font-size: 11px;
+}
+
+.bug-context-line code {
+  min-width: 0;
+
+  overflow: hidden;
+
+  color: var(--bug-text-secondary);
+
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  font-size: 10px;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ============================================================
+   ACTIONS
+   ============================================================ */
+
+.bug-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 8px;
+
+  padding-top: 2px;
+}
+
+.bug-secondary,
+.bug-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 38px;
+
+  border-radius: 10px;
+
+  cursor: pointer;
+
+  font-size: 12px;
+  font-weight: 650;
+
+  transition:
+    background-color 120ms ease-out,
+    border-color 120ms ease-out,
+    color 120ms ease-out,
+    transform 120ms ease-out,
+    opacity 120ms ease-out;
+}
+
+.bug-secondary {
+  padding: 0 13px;
+
+  border: 1px solid var(--bug-border-strong);
+
+  background: var(--bug-surface);
+  color: var(--bug-text-secondary);
+}
+
+.bug-secondary:hover:not(:disabled) {
+  background: var(--bug-surface-subtle);
+  color: var(--bug-text);
+}
+
+.bug-primary {
+  gap: 7px;
+
+  padding: 0 14px;
+
+  border: 1px solid #171717;
+
+  background: #171717;
+  color: #ffffff;
+}
+
+.bug-primary:hover:not(:disabled) {
+  background: #2a2a2a;
+}
+
+.bug-primary:active:not(:disabled),
+.bug-secondary:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+.bug-primary:disabled,
+.bug-secondary:disabled {
+  cursor: not-allowed;
+
+  opacity: 0.45;
+}
+
+/* ============================================================
+   SUCCESS
+   ============================================================ */
+
+.bug-dialog.is-submitted {
+  display: flex;
+}
+
+.bug-success {
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  flex: 1 1 auto;
+
+  min-height: 0;
+
+  padding: 32px;
+
+  text-align: center;
+}
+
+.bug-success-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 44px;
+  height: 44px;
+
+  margin-bottom: 16px;
+
+  border-radius: 50%;
+
+  background: #edf8ef;
+  color: #2f8f46;
+}
+
+.bug-success-content h2 {
+  margin: 0;
+
+  color: var(--bug-text);
+
+  font-size: 19px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.bug-success-content p {
+  max-width: 280px;
+
+  margin: 7px 0 0;
+
+  color: var(--bug-text-secondary);
+
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.bug-success-button {
+  margin-top: 24px;
+}
+
+.bug-submit-error {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 9px;
+
+  padding: 11px 12px;
+
+  border: 1px solid rgb(190 35 35 / 12%);
+  border-radius: 10px;
+
+  background: rgb(190 35 35 / 5%);
+  color: #a52d2d;
+
+  font-size: 11px;
+  font-weight: 550;
+  line-height: 1.45;
+}
+
+.bug-submit-error svg {
+  flex: 0 0 auto;
+
+  margin-top: 1px;
+}
+
+/* ============================================================
+   MOTION
+   ============================================================ */
+
+@keyframes bug-dialog-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+
+@media (max-width: 560px) {
+  .bug-button {
+    right: 14px;
+    bottom: 14px;
+  }
+
+  .bug-overlay {
+    align-items: flex-end;
+    justify-content: center;
+
+    padding: 8px;
+  }
+
+  .bug-dialog {
+    width: 100%;
+
+    height: calc(100dvh - 16px);
+
+    max-height: calc(100dvh - 16px);
+
+    border-radius: 18px;
+  }
+
+  .bug-dialog-header {
+    padding: 17px 18px;
+  }
+
+  .bug-form {
+    padding: 0;
+  }
+}
