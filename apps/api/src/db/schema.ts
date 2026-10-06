@@ -1,3 +1,4 @@
+import { relations } from "drizzle-orm";
 import {
   index,
   integer,
@@ -47,36 +48,45 @@ export const bugPriorityEnum = pgEnum("bug_priority", [
 /* Projects                                                                   */
 /* -------------------------------------------------------------------------- */
 
-export const projects = pgTable("projects", {
-  id: uuid("id").defaultRandom().primaryKey(),
+export const projects = pgTable(
+  "projects",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
 
-  /*
-   * This is the public identifier used by:
-   *
-   * data-project="pub_test"
-   */
-  publicKey: varchar("public_key", {
-    length: 100,
-  })
-    .notNull()
-    .unique(),
+    /**
+     * Clerk user ID of the owner (e.g. "user_2abc...").
+     * Every project belongs to exactly one user.
+     */
+    ownerId: varchar("owner_id", { length: 255 }).notNull(),
 
-  name: varchar("name", {
-    length: 255,
-  }).notNull(),
+    /**
+     * Public identifier used by the widget:
+     *   <script data-project="pub_test">
+     */
+    publicKey: varchar("public_key", {
+      length: 100,
+    })
+      .notNull()
+      .unique(),
 
-  createdAt: timestamp("created_at", {
-    withTimezone: true,
-  })
-    .notNull()
-    .defaultNow(),
+    name: varchar("name", {
+      length: 255,
+    }).notNull(),
 
-  updatedAt: timestamp("updated_at", {
-    withTimezone: true,
-  })
-    .notNull()
-    .defaultNow(),
-});
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+    })
+      .notNull()
+      .defaultNow(),
+
+    updatedAt: timestamp("updated_at", {
+      withTimezone: true,
+    })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [index("projects_owner_idx").on(table.ownerId)],
+);
 
 /* -------------------------------------------------------------------------- */
 /* Bug Reports                                                                */
@@ -99,10 +109,6 @@ export const bugReports = pgTable(
 
     reproductionSteps: text("reproduction_steps"),
 
-    /*
-     * Context currently collected by the widget.
-     */
-
     pageUrl: text("page_url").notNull(),
 
     pageTitle: text("page_title").notNull(),
@@ -110,10 +116,6 @@ export const bugReports = pgTable(
     viewportWidth: integer("viewport_width").notNull(),
 
     viewportHeight: integer("viewport_height").notNull(),
-
-    /*
-     * Backend/dashboard state.
-     */
 
     status: bugStatusEnum("status").notNull().default("open"),
 
@@ -139,9 +141,18 @@ export const bugReports = pgTable(
   },
   (table) => [
     index("bug_reports_project_idx").on(table.projectId),
-
     index("bug_reports_status_idx").on(table.status),
-
     index("bug_reports_created_at_idx").on(table.createdAt),
   ],
 );
+
+export const projectsRelations = relations(projects, ({ many }) => ({
+  bugReports: many(bugReports),
+}));
+
+export const bugReportsRelations = relations(bugReports, ({ one }) => ({
+  project: one(projects, {
+    fields: [bugReports.projectId],
+    references: [projects.id],
+  }),
+}));
