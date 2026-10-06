@@ -1,10 +1,13 @@
-import { createRoot } from "react-dom/client";
-import Widget from "./Widget";
-import styles from "./styles.css?raw";
+import { mountWidget } from "./mount";
 
 const script = document.currentScript;
 
-function bootstrap(script: HTMLScriptElement) {
+function bootstrap() {
+  if (!(script instanceof HTMLScriptElement)) {
+    console.error("[BugReporter] Could not identify the widget script.");
+    return;
+  }
+
   const project = script.dataset.project;
 
   if (!project) {
@@ -12,35 +15,13 @@ function bootstrap(script: HTMLScriptElement) {
     return;
   }
 
-  const host = document.createElement("div");
-
-  host.setAttribute("data-bug-reporter", "");
-
-  document.body.appendChild(host);
-
-  const shadowRoot = host.attachShadow({
-    mode: "closed",
-  });
-
-  const style = document.createElement("style");
-
-  style.textContent = styles;
-
-  shadowRoot.appendChild(style);
-
-  const root = createRoot(shadowRoot);
-
-  root.render(<Widget project={project} />);
+  mountWidget(project);
 }
 
-if (script instanceof HTMLScriptElement) {
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", () => bootstrap(script), {
-      once: true,
-    });
-  } else {
-    bootstrap(script);
-  }
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", bootstrap, {
+    once: true,
+  });
 } else {
-  console.error("[BugReporter] Could not identify the widget script.");
+  bootstrap();
 }
